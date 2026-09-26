@@ -1,0 +1,5 @@
+chiko (0.2.0-1) unstable; urgency=medium
+
+  * Initial Debian packaging of chiko, a TUI gRPC client.
+
+ -- Herpiko Dwi Aguno <herpiko@gmail.com>  Sat, 26 Sep 2026 13:44:24 +0700

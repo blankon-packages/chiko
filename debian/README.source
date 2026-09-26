@@ -1,0 +1,70 @@
+chiko for Debian
+================
+
+This package REQUIRES NETWORK ACCESS AT BUILD TIME
+--------------------------------------------------
+
+chiko is a Go program.  Its dependencies are neither vendored in the source
+package nor taken from golang-*-dev packages: debian/rules downloads them
+from the Go module proxy (https://proxy.golang.org) while the package is
+built.
+
+The consequence is that this package cannot be built in a network-isolated
+environment.  In particular it will NOT build on a Debian buildd, nor under
+sbuild or pbuilder with their default settings, and it is therefore not
+suitable for upload to the Debian archive as it stands.  Build it on a
+machine with working internet access:
+
+    dpkg-buildpackage -us -uc -b
+
+Under sbuild, network access has to be granted explicitly, for example:
+
+    sbuild --enable-network
+
+Integrity of the downloads is not taken on trust.  debian/rules runs
+"go mod download all" followed by "go mod verify", both of which check the
+cryptographic hashes recorded in upstream's go.sum, and GOSUMDB is left at
+sum.golang.org so that new modules are checked against the public checksum
+database as well.  A proxy serving tampered code is detected and fails the
+build.
+
+Everything downloaded is placed under _build/gopath inside the build tree,
+so the build never writes to the user's ~/go and "debian/rules clean"
+removes all of it.
+
+Why not vendor, or use Debian's Go libraries?
+---------------------------------------------
+
+Vendoring was deliberately dropped at the maintainer's request.  Using
+golang-*-dev build dependencies instead is not currently possible either:
+four of chiko's dependencies are absent from Debian, including the ones
+chiko is principally built on.
+
+    github.com/fullstorydev/grpcurl
+    github.com/jhump/protoreflect
+    github.com/bufbuild/protocompile
+    github.com/epiclabs-io/winman
+
+Packaging those four for Debian is the prerequisite for a fully offline,
+archive-acceptable build.
+
+Licensing of the dependencies
+-----------------------------
+
+Because the dependencies are not shipped in the source package, their
+licences cannot be documented with per-file stanzas.  They are summarised in
+the header of debian/copyright instead, and the licence texts are reproduced
+there in full.  When updating to a new upstream release, check whether the
+dependency set in go.mod gained a module under a licence not already listed.
+
+Building
+--------
+
+The source format is 3.0 (quilt), so an upstream tarball is needed next to
+the source tree:
+
+    git archive --format=tar.gz --prefix=chiko-0.2.0/ \
+        -o ../chiko_0.2.0.orig.tar.gz HEAD
+    dpkg-buildpackage -us -uc -b
+
+ -- Herpiko Dwi Aguno <herpiko@gmail.com>  Sat, 26 Sep 2026 00:00:00 +0700

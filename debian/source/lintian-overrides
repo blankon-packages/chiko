@@ -1,0 +1,10 @@
+# The package does not use dh-golang: the dependencies are downloaded from the
+# Go module proxy during the build and linked into the single binary, so there
+# is no set of golang-*-dev build dependencies for dh_golang to record here.
+missing-static-built-using-field-for-golang-package
+
+# The dependencies are downloaded at build time rather than shipped in the
+# source package, so their licences cannot be attached to a Files paragraph.
+# They are still reproduced in full because the code they cover is linked into
+# the binary package; see the Comment field at the top of debian/copyright.
+unused-license-paragraph-in-dep5-copyright *

@@ -1,0 +1,81 @@
+.TH CHIKO 1 "2026-09-26" "chiko 0.2.0" "User Commands"
+.SH NAME
+chiko \- beautiful terminal UI client for gRPC
+.SH SYNOPSIS
+.B chiko
+.RI [ options ]
+.RI [ host : port ]
+.SH DESCRIPTION
+.B chiko
+is a terminal user interface for exploring and calling gRPC services.  It
+uses server reflection to discover the services and methods a server
+exposes, lets the request payload and metadata be edited interactively, and
+displays the response in a scrollable output panel.
+.PP
+Sessions can be saved as bookmarks, grouped into categories, and recalled
+later; every invocation is also kept in a history panel.
+.PP
+If a
+.IR host : port
+argument is given, chiko connects to that address on startup.
+.SH OPTIONS
+.TP
+.B \-plaintext
+Use plain-text HTTP/2 when connecting to the server, without TLS.  Enabled
+by default.
+.TP
+.B \-insecure
+Skip verification of the server certificate and host name.  Only meaningful
+when TLS is used.
+.TP
+.BI \-cacert " file"
+File containing the trusted root certificates used to verify the server.
+.TP
+.BI \-cert " file"
+File containing the client certificate (public key) for mutual TLS.  Must be
+given together with
+.BR \-key .
+.TP
+.BI \-key " file"
+File containing the client private key for mutual TLS.  Must be given
+together with
+.BR \-cert .
+.TP
+.BI \-d " data"
+Contents of the request, as JSON.
+.TP
+.B \-allow\-unknown\-fields
+Accept unknown fields in the JSON request instead of reporting an error.
+.TP
+.BI \-connect\-timeout " seconds"
+Maximum time to wait for the connection to be established.  Defaults to 10.
+.TP
+.BI \-keepalive\-time " seconds"
+Maximum idle time before a keepalive probe is sent.  Defaults to 0, meaning
+no probes.
+.TP
+.BI \-max\-time " seconds"
+Maximum total time for the whole operation.  Defaults to 0, meaning no
+limit.
+.TP
+.BI \-max\-msg\-sz " bytes"
+Maximum encoded size of a response message.  Defaults to 4194304.
+.SH FILES
+.TP
+.I $XDG_CONFIG_HOME/chiko
+Configuration directory holding saved bookmarks and history.  When
+.B XDG_CONFIG_HOME
+is unset,
+.I ~/.config/chiko
+is used.
+.SH EXIT STATUS
+.B chiko
+exits with status 0 on success and 1 if the command line is invalid or the
+interface cannot be started.
+.SH SEE ALSO
+.BR grpcurl (1)
+.SH BUGS
+Report bugs at <https://github.com/felangga/chiko/issues>.
+.SH AUTHOR
+chiko was written by felangga.  This manual page was written for the Debian
+package.

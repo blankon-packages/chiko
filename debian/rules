@@ -1,0 +1,78 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS := hardening=+all
+
+include /usr/share/dpkg/pkg-info.mk
+include /usr/share/dpkg/buildflags.mk
+
+# The dependencies are NOT vendored in the source package: they are downloaded
+# from the Go module proxy during the build, so this package REQUIRES network
+# access at build time and cannot be built on a Debian buildd or in a default
+# sbuild/pbuilder chroot.  See debian/README.source.
+export GOFLAGS := -mod=mod -trimpath
+export GO111MODULE := on
+export GOPROXY := https://proxy.golang.org,direct
+export GOSUMDB := sum.golang.org
+export GOTOOLCHAIN := local
+
+# Keep every downloaded artefact inside the build tree so nothing leaks into
+# the user's ~/go and the build stays self-contained.
+export GOPATH := $(CURDIR)/_build/gopath
+export GOMODCACHE := $(CURDIR)/_build/gopath/pkg/mod
+export GOCACHE := $(CURDIR)/_build/gocache
+
+# Keep cgo enabled so the binary links dynamically against the system libc,
+# as Debian expects, rather than being fully static.
+export CGO_ENABLED := 1
+
+# Upstream's bookmark migration test renames a file from the package
+# directory into a temporary directory; keep both on the same filesystem so
+# the rename does not fail with EXDEV on split /tmp setups.
+TEST_TMPDIR := $(CURDIR)/_build/tmp
+
+# Strip the Debian revision so the binary reports the upstream version.
+UPSTREAM_VERSION := $(shell echo '$(DEB_VERSION_UPSTREAM)' | sed 's/[+~-].*//')
+
+%:
+	dh $@
+
+# Download the modules up front so a network failure is reported as its own
+# clearly identifiable step rather than in the middle of the compile.  The
+# checksums in go.sum are verified here, so a tampered proxy is detected.
+override_dh_auto_configure:
+	go mod download all
+	go mod verify
+
+override_dh_auto_build:
+	go build -buildmode=pie \
+		-ldflags "-X main.Version=v$(UPSTREAM_VERSION) -linkmode=external \
+			-extldflags '-Wl,-z,relro,-z,now'" \
+		-o _build/chiko ./cmd/chiko
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	mkdir -p $(TEST_TMPDIR)
+	TMPDIR=$(TEST_TMPDIR) go test ./internal/...
+endif
+
+override_dh_auto_install:
+	install -D -m 0755 _build/chiko debian/chiko/usr/bin/chiko
+	# Section 4(d) of the Apache License requires the NOTICE file shipped by
+	# gRPC to be redistributed.  It is no longer in the source tree, so take
+	# it from the module cache populated by dh_auto_configure.
+	install -D -m 0644 \
+		$(firstword $(wildcard $(GOMODCACHE)/google.golang.org/grpc@*/NOTICE.txt)) \
+		debian/chiko/usr/share/doc/chiko/NOTICE.txt
+
+# The Go module cache is deliberately read-only; make it writable again so
+# that removing the build tree cannot fail.
+override_dh_auto_clean:
+	[ ! -d _build ] || chmod -R u+w _build
+	rm -rf _build
+
+# Go binaries carry DWARF sections that dwz cannot process, and the Go
+# toolchain does not produce useful detached debug symbols.
+override_dh_dwz:
+
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym

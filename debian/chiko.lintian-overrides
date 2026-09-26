@@ -1,0 +1,4 @@
+# This packaging is maintained outside Debian, so the initial changelog
+# entry does not close an ITP bug in the Debian BTS.
+chiko: initial-upload-closes-no-bugs
+

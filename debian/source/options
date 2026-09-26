@@ -1,0 +1,2 @@
+# The Go module cache and build artefacts must never end up in a patch.
+extend-diff-ignore = "^(_build/|vendor/)"

@@ -1,0 +1,11 @@
+build/
+_build/
+debian/chiko/
+debian/.debhelper/
+debian/files
+debian/*.substvars
+debian/*.log
+debian/debhelper-build-stamp
+
+# Go dependencies are fetched at build time, not vendored.
+/vendor/

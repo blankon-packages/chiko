@@ -1,0 +1,28 @@
+Source: chiko
+Section: devel
+Priority: optional
+Maintainer: Herpiko Dwi Aguno <herpiko@gmail.com>
+Build-Depends: ca-certificates,
+               debhelper-compat (= 13),
+               golang-go (>= 2:1.22~)
+Standards-Version: 4.7.4
+XS-Go-Import-Path: github.com/felangga/chiko
+Homepage: https://github.com/felangga/chiko
+Vcs-Browser: https://github.com/felangga/chiko
+Vcs-Git: https://github.com/felangga/chiko.git
+Rules-Requires-Root: no
+
+Package: chiko
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: beautiful terminal UI client for gRPC
+ Chiko is a terminal user interface (TUI) client for exploring and calling
+ gRPC services, built on top of grpcurl and tview. It removes the need to
+ memorise long grpcurl command lines by offering an interactive interface.
+ .
+ Features include:
+  * server reflection based discovery of services and methods;
+  * an editable JSON request payload and custom request metadata;
+  * bookmarks with categories and a history of previous invocations;
+  * TLS, mutual TLS and plain-text connections;
+  * authorization headers and a built-in file picker for certificates.

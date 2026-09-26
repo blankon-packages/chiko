@@ -1,0 +1,44 @@
+version: 2
+project_name: chiko
+
+builds:
+  - id: chiko
+    main: cmd/chiko/main.go
+    ldflags:
+      - -s -w -X main.Version={{.Version}}
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+
+release:
+  github:
+    owner: felangga
+    name: chiko
+
+brews:
+  - name: chiko
+    homepage: "https://github.com/felangga/chiko"
+    description: "A simple TUI gRPC client"
+    license: "MIT"
+    dependencies:
+      - "go"
+    repository:
+      owner: felangga
+      name: homebrew-chiko
+
+
+changelog:
+  use: github
+  sort: desc

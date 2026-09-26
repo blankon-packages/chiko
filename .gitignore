@@ -1,10 +1,6 @@
-# This repository holds the debian/ directory only; upstream source and the
-# build products live outside it.  These entries matter only if a build is run
-# inside a working tree that has upstream source unpacked over it.
-/_build/
-/debian/chiko/
-/debian/.debhelper/
-/debian/files
-/debian/*.substvars
-/debian/*.debhelper.log
-/debian/debhelper-build-stamp
+.bookmarks
+dist/
+main
+build
+.idea
+chiko

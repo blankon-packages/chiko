@@ -4,25 +4,56 @@ chiko for Debian
 Layout of this repository
 -------------------------
 
-This repository contains the debian/ directory only.  No upstream source is
-kept here: it is fetched from upstream's release tags, which debian/watch
-describes.  To build, obtain the upstream tarball and overlay debian/ on top
-of the unpacked tree.
+This repository carries the upstream source tree with debian/ added on top.
+Outside debian/ it is a verbatim copy of upstream's main branch, currently
+commit 8e5d9f9 ("fix: versioning", tagged v0.2.0).
 
-    # from the parent directory of this repository
-    uscan --verbose --destdir . --package chiko \
-          --upstream-version 0 --watchfile chiko-deb/debian/watch
-    tar xf chiko_0.2.0.orig.tar.gz
-    cp -r chiko-deb/debian chiko-0.2.0/
-    cd chiko-0.2.0
-    dpkg-buildpackage -us -uc -b
+That copy has to stay verbatim.  The source format is 3.0 (quilt), so the
+upstream part of the tree is compared against the orig tarball when the
+source package is built, and any difference outside debian/ makes
+dpkg-source abort with "aborting due to unexpected upstream changes".  A
+change to upstream's code therefore belongs in debian/patches, and a new
+upstream release is imported by copying the new tree over this one, again
+excluding debian/.
 
-uscan writes both chiko-0.2.0.tar.gz and the chiko_0.2.0.orig.tar.gz name
-that the 3.0 (quilt) source format expects, so a source package can be built
-in the same tree with "dpkg-buildpackage -us -uc".
+Two consequences worth knowing:
 
-Alternatively, with git-buildpackage configured for this layout, use
-"gbp buildpackage" instead of the steps above.
+  * .gitignore is upstream's file and must not be edited.  Ignore rules for
+    the build products live in .git/info/exclude instead, which is local to
+    the clone and not part of the tree.
+
+  * upstream's .gitignore contains a bare "chiko" entry, which also matches
+    the cmd/chiko/ directory.  Re-adding that directory after a fresh import
+    needs "git add -f cmd".
+
+Building
+--------
+
+An orig tarball is needed beside the tree, holding the same upstream source
+without debian/:
+
+    tar --exclude=./debian --exclude=./.git --exclude=./_build \
+        --exclude=./.pc --transform 's|^\./|chiko-0.2.0/|' \
+        --sort=name --owner=0 --group=0 --numeric-owner \
+        -cJf ../chiko_0.2.0.orig.tar.xz .
+    dpkg-buildpackage -us -uc -b      # binary package
+    dpkg-buildpackage -us -uc -S      # source package
+
+Submitting to the BlankOn build farm
+------------------------------------
+
+irgsh builds the orig tarball itself, from the upstream repository given by
+--source.  Upstream's default branch is main, which is not irgsh's default,
+so it has to be named explicitly:
+
+    irgsh-cli package --dist sinambung \
+        --source https://github.com/felangga/chiko.git --source-branch main \
+        --package https://github.com/blankon-packages/chiko.git \
+        --package-branch main
+
+Keeping the upstream source in this repository is what lets irgsh's
+pre-submit local build work: it builds the packaging tree directly, so a
+tree holding debian/ alone has nothing for debian/rules to compile.
 
 This package REQUIRES NETWORK ACCESS AT BUILD TIME
 --------------------------------------------------

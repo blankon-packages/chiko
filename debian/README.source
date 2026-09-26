@@ -1,6 +1,29 @@
 chiko for Debian
 ================
 
+Layout of this repository
+-------------------------
+
+This repository contains the debian/ directory only.  No upstream source is
+kept here: it is fetched from upstream's release tags, which debian/watch
+describes.  To build, obtain the upstream tarball and overlay debian/ on top
+of the unpacked tree.
+
+    # from the parent directory of this repository
+    uscan --verbose --destdir . --package chiko \
+          --upstream-version 0 --watchfile chiko-deb/debian/watch
+    tar xf chiko_0.2.0.orig.tar.gz
+    cp -r chiko-deb/debian chiko-0.2.0/
+    cd chiko-0.2.0
+    dpkg-buildpackage -us -uc -b
+
+uscan writes both chiko-0.2.0.tar.gz and the chiko_0.2.0.orig.tar.gz name
+that the 3.0 (quilt) source format expects, so a source package can be built
+in the same tree with "dpkg-buildpackage -us -uc".
+
+Alternatively, with git-buildpackage configured for this layout, use
+"gbp buildpackage" instead of the steps above.
+
 This package REQUIRES NETWORK ACCESS AT BUILD TIME
 --------------------------------------------------
 
@@ -13,11 +36,8 @@ The consequence is that this package cannot be built in a network-isolated
 environment.  In particular it will NOT build on a Debian buildd, nor under
 sbuild or pbuilder with their default settings, and it is therefore not
 suitable for upload to the Debian archive as it stands.  Build it on a
-machine with working internet access:
-
-    dpkg-buildpackage -us -uc -b
-
-Under sbuild, network access has to be granted explicitly, for example:
+machine with working internet access.  Under sbuild, network access has to be
+granted explicitly, for example:
 
     sbuild --enable-network
 
@@ -56,15 +76,5 @@ licences cannot be documented with per-file stanzas.  They are summarised in
 the header of debian/copyright instead, and the licence texts are reproduced
 there in full.  When updating to a new upstream release, check whether the
 dependency set in go.mod gained a module under a licence not already listed.
-
-Building
---------
-
-The source format is 3.0 (quilt), so an upstream tarball is needed next to
-the source tree:
-
-    git archive --format=tar.gz --prefix=chiko-0.2.0/ \
-        -o ../chiko_0.2.0.orig.tar.gz HEAD
-    dpkg-buildpackage -us -uc -b
 
  -- Herpiko Dwi Aguno <herpiko@gmail.com>  Sat, 26 Sep 2026 00:00:00 +0700

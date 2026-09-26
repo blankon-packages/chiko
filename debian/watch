@@ -1,4 +1,7 @@
 version=4
+# Upstream publishes releases as git tags; GitHub serves them as tarballs.
+# The uupdate action is deliberately absent: this repository holds debian/
+# only, so there is no working tree for uupdate to graft a new version onto.
 opts=filenamemangle=s%(?:.*?)?v?(\d[\d.]*)\.tar\.gz%chiko-$1.tar.gz% \
   https://github.com/felangga/chiko/tags \
-  (?:.*?/)?v?(\d[\d.]*)\.tar\.gz debian uupdate
+  (?:.*?/)?v?(\d[\d.]*)\.tar\.gz debian

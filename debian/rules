@@ -9,7 +9,10 @@ include /usr/share/dpkg/buildflags.mk
 # from the Go module proxy during the build, so this package REQUIRES network
 # access at build time and cannot be built on a Debian buildd or in a default
 # sbuild/pbuilder chroot.  See debian/README.source.
-export GOFLAGS := -mod=mod -trimpath
+# -mod=readonly is essential: it lets the modules be downloaded but forbids
+# the toolchain from rewriting go.mod or go.sum, which would dirty the
+# unpacked source tree and produce a spurious patch on the next rebuild.
+export GOFLAGS := -mod=readonly -trimpath
 export GO111MODULE := on
 export GOPROXY := https://proxy.golang.org,direct
 export GOSUMDB := sum.golang.org
@@ -39,8 +42,10 @@ UPSTREAM_VERSION := $(shell echo '$(DEB_VERSION_UPSTREAM)' | sed 's/[+~-].*//')
 # Download the modules up front so a network failure is reported as its own
 # clearly identifiable step rather than in the middle of the compile.  The
 # checksums in go.sum are verified here, so a tampered proxy is detected.
+# Note "go mod download" without "all": "all" walks the whole module graph and
+# would fetch (and want to record hashes for) modules this build never needs.
 override_dh_auto_configure:
-	go mod download all
+	go mod download
 	go mod verify
 
 override_dh_auto_build:
